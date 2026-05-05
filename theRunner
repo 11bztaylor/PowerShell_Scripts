@@ -1,4 +1,4 @@
-[System.String]$FunctionAppFQDN = 'ladadxmove.azurewebsites.net'
+[System.String]$FunctionAppFQDN = 'omit.azurewebsites.net'
 <#
     Function list:
         - CreateSearchJob
