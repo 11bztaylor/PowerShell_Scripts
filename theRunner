@@ -1,0 +1,32 @@
+[System.String]$FunctionAppFQDN = 'ladadxmove.azurewebsites.net'
+<#
+    Function list:
+        - CreateSearchJob
+        - CreateStorageContainer
+        - DeleteLogsFromLAW
+        - DeleteSearchJob
+        - ExportLAToBlob
+#>
+[System.String]$FunctionName = 'DeleteSearchJob'
+
+$headers = @{
+    'x-functions-key' = 'omit';
+    'Content-Type'    = 'application/json'
+}
+
+$Payload = @{
+    EntraTenantID               = 'omit';
+    LAWResourceID               = 'omit';
+    LAWTableName                = 'CommonSecurityLog';
+    FromDateTimeUTC             = '01/20/2026 17:40:00';
+    ToDateTimeUTC               = '01/20/2026 17:42:00';
+    IsSearchJob                 = 'True';
+    SliceSeconds                = 5;
+    Parallelism                 = 3;
+    StorageAccountResourceID    = 'omit';
+    StorageAccountContainerName = 'omit';
+} | ConvertTo-Json -Depth 10
+
+[System.String]$InvokeURI = [System.String]::Concat('https://',$FunctionAppFQDN, '/api/', $FunctionName)
+Write-Information -MessageData "Invoking function at URI '$InvokeURI' with body '$Payload'."
+Invoke-RestMethod -Method POST -Uri $InvokeURI -Headers $headers -Body $Payload -ContentType 'application/json'
