@@ -331,14 +331,12 @@ $LAWTableName
             [System.String]$OutFileBlobName = $GetOutFile.Name
             [System.String]$OutFileFullname = $GetOutFile.FullName
 
-            # Upload logs if blob doesn't already exist. If it does, bail.
+            # Upload logs if blob doesn't already exist. If it does, skip.
             Write-Verbose -Message 'Testing if blob already exists.'
-            $VerbosePreference = 'SilentlyContinue'
-            $GetBlob = Get-AzStorageBlobContent -Context $ctx -Container $StorageAccountContainerName -Blob $OutFileBlobName -ErrorAction SilentlyContinue -Verbose:$false
-            $VerbosePreference = 'Continue'
+            $GetBlob = Get-AzStorageBlob -Context $ctx -Container $StorageAccountContainerName -Blob $OutFileBlobName -ErrorAction SilentlyContinue
 
             if ($GetBlob) {
-                Write-Error -Message "ERROR: Blob: '$OutFileBlobName' already exists. Not uploading! Bailing."
+                Write-Error -Message "ERROR: Blob: '$OutFileBlobName' already exists. Not uploading! Delete all blobs for this run and restart."
                 throw
             }
             else {
