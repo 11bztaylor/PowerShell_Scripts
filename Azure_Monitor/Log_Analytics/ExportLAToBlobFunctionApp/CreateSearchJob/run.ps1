@@ -302,12 +302,8 @@ if ($true -eq $IsSearchJob) {
 
     [System.DateTime]$SearchJobStartDateTime = $FromDateTimeUTCDateTime
     [System.DateTime]$SearchJobEndDateTime = $ToDateTimeUTCDateTime
-    if ($SearchJobStartDateTime.Date -ne $SearchJobEndDateTime.Date) {
-        throw "Search job time windows that cross midnight are not supported. Adjust the window so start and end fall on the same calendar day. Start: '$SearchJobStartDateTime', End: '$SearchJobEndDateTime'."
-    }
-    [System.String]$SearchJobTableNameDate = Get-Date -Date $SearchJobStartDateTime -UFormat '%y%m%d'
-    [System.String]$SearchJobTableNameStartTime = Get-Date -Date $SearchJobStartDateTime -UFormat '%H%M'
-    [System.String]$SearchJobTableNameEndTime = Get-Date -Date $SearchJobEndDateTime -UFormat '%H%M'
+    [System.String]$SearchJobTableNameStartDate = Get-Date -Date $SearchJobStartDateTime -UFormat '%y%m%d'
+    [System.String]$SearchJobTableNameEndDate = Get-Date -Date $SearchJobEndDateTime -UFormat '%y%m%d'
 
     # Slice via KQL time filter (portable and explicit)
     [System.String]$FromDateTimeUTCDateTimeStringLowercase = $FromDateTimeUTCDateTime.ToString('o')
@@ -319,11 +315,9 @@ $LAWTableName
 | where TimeGenerated between (datetime($FromDateTimeUTCDateTimeStringLowercase) .. datetime($ToDateTimeUTCDateTimeStringLowercase))
 "@
     Write-ToLog -Stream 'Information' -MessageData "KQL Query being executed: '$KQLQuery'."
-    # Format: {Table}_{YYMMDD}_{StartHHMM}{EndHHMM}_SRCH (21-char overhead, 24-char max table name)
-    [System.String]$SearchJobTableName = [System.String]::Concat($LAWTableName,'_',$SearchJobTableNameDate,'_',$SearchJobTableNameStartTime,$SearchJobTableNameEndTime,'_SRCH')
-    if ($SearchJobTableName.Length -gt 45) {
-        throw "Computed search job table name: '$SearchJobTableName' ($($SearchJobTableName.Length) chars) exceeds the 45-character LA limit. Use a shorter source table name."
-    }
+    # Restrict new table name to LA table naming restrictions
+    # SecurityEvent_2604_2604_SRCH
+    [System.String]$SearchJobTableName = [System.String]::Concat($LAWTableName,'_',$SearchJobTableNameStartDate,'_',$SearchJobTableNameEndDate,'_SRCH')
 
     Write-ToLog -Stream 'Information' -MessageData "Creating a search job table named: '$SearchJobTableName' for starting date time: '$FromDateTimeUTCDateTime' and ending: '$ToDateTimeUTCDateTime'."
 
